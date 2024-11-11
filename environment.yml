@@ -1,0 +1,20 @@
+name: neuroprofile
+channels:
+  - defaults
+dependencies:
+  - jupyter
+  - matplotlib
+  - numpy
+  - openpyxl
+  - pandas
+  - pip
+  - python
+  - scikit-learn
+  - scipy
+  - seaborn
+  - statsmodels
+  - yaml
+  - pip:
+      - avro
+      - neurokit2==0.2.10
+

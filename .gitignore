@@ -1,0 +1,135 @@
+/data
+Welcome.code-workspace
+/reports
+**/_archive
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+# Usually contains a lot of binary files, see https://github.com/pyinstaller/pyinstaller
+dist/
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+.cache/
+junit-xml/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# macOS-specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# macOS trash folder
+.Trashes
+.DS_Store
+.Spotlight-V100
+.TemporaryItems
+.apdisk
+
+# Windows-specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Python virtual environment
+venv/
+env/
+ENV/
+.venv/
+.pyvenv/
+
+# IDE and editor files
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Temporary files created by editors
+*.swp
+*.swo
+*~
+*.tmp
+
+# Ignore logs and databases
+*.log
+*.sql
+*.sqlite3
+
+# dotenv environment variables file
+.env
+.env.*
+
+# Ignore mypy files
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ignore profiling data
+.prof
+
+# Ignore pytest cache
+.pytest_cache/
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore data science output
+*.pkl
+*.h5
+*.hdf5
+*.joblib
