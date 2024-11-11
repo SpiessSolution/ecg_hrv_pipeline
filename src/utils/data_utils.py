@@ -238,7 +238,7 @@ def segment_df(df: pd.DataFrame, pipeline_params: Dict) -> List[pd.DataFrame]:
         
         # get the onset and offset times
         event_onset_time = get_event_time_from_dataframe_index(event_onset, df)
-        event_offset_time = get_event_time_from_dataframe_index(event_offset, df) #
+        event_offset_time = get_event_time_from_dataframe_index(event_offset, df)
         
         # retrieve the data in between (inclusive bounds) the onset and offset time using the index
         segment = df[(df.index >= event_onset_time) & (df.index <= event_offset_time)]
