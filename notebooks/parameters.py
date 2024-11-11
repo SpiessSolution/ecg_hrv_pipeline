@@ -38,14 +38,30 @@ base_params = {
         'normalize': True
     },
     'segmentation': {
-        'baseline': { # name of the segment
+        'baseline': { # name of the segment (does not have to correspond to the name in the event.txt)
             'event_onset':'baseline resting start', # put here either event description (e.g., baseline resting start)
             'duration': 300, # put here the duration (in seconds)
             },
-        'stroop_mother_start': {
+        'book_start': {
             'event_onset': "Book start",
             'duration': 300,
-        }
+        },
+        'stroop_mother_start': {
+            'event_onset': "stroop mother start",
+            'duration': 300,
+        },
+        'akt_start': {
+            'event_onset': "AKT start",
+            'duration': 300,
+        },
+        'day_night_start': {
+            'event_onset': "Day/night start",
+            'duration': 300,
+        },
+        'endline_resting_start': {
+            'event_onset': "endline resting start",
+            'duration': 300,
+        },
     }
 }
 
