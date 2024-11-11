@@ -39,12 +39,12 @@ base_params = {
     },
     'segmentation': {
         'baseline': { # name of the segment
-            'event_onset':'Keyboard:F1', # put here either event name "Keyboard:F1" or the time in milliseconds (e.g., 0.02) if no event is defined for start and/or end
-            'event_offset':'Keyboard:F2',
+            'event_onset':'baseline resting start', # put here either event description (e.g., baseline resting start)
+            'duration': 300, # put here the duration (in seconds)
             },
         'stroop_mother_start': {
-            'event_onset': "Keyboard:F4",
-            'event_offset': "Keyboard:F5",
+            'event_onset': "Book start",
+            'duration': 300,
         }
     }
 }

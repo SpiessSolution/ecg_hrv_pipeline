@@ -160,7 +160,7 @@ def extract_subject_id_condition_from_filepath(file_path: Union[str, Path]) -> T
     condition = condition_sub_str[0]
     subject_id = condition_sub_str[1:]
     assert len(condition) == 1
-    assert (len(subject_id) >= 2) and (len(subject_id) <= 3)
+    # assert (len(subject_id) >= 2) and (len(subject_id) <= 3)
     return int(subject_id), condition
 
 def load_event_data(filepath: Union[str, Path]) -> pd.DataFrame:
@@ -193,6 +193,7 @@ def prepare_event_data(df: pd.DataFrame) -> pd.DataFrame:
     assert 'Acquisition Start' in df.columns, "Acquisition Start column not found in the event file."
     assert df.shape[1] == 3, "Event file should have 3 columns."
     df.columns = ['event', 'event_description', 'timestamp_ms']
+    df['event_description'] = df['event_description'].apply(lambda x: x.strip())
     
     return df
 
@@ -216,15 +217,15 @@ def iterate_batches(df: pd.DataFrame, batch_size: int):
 
 def get_event_time_from_dataframe_index(event: Union[str, float], df: pd.DataFrame) -> float:
     """Note that df must have ms as time index"""
-    assert 'event' in df.columns 
+    assert 'event_description' in df.columns 
     if (isinstance(event, str)):
         if common.is_number(event):
             return float(event)
-        row = df[df['event'] == event]
+        row = df[df['event_description'] == event]
         if len(row) == 1:
             return row.index[0]
         else:
-            raise ValueError(f"Found {len(row)} rows in df for event {event}")
+            raise ValueError(f"Found {len(row)} rows in df for event: {event}")
     elif isinstance(event, float):
         return event
 
@@ -234,11 +235,13 @@ def segment_df(df: pd.DataFrame, pipeline_params: Dict) -> List[pd.DataFrame]:
         # Extract the information from the dictionary. 
         segment_name = segment_info[0]
         event_onset = segment_info[1]['event_onset']
-        event_offset = segment_info[1]['event_offset']
+        event_offset = segment_info[1]['duration']
+        if common.is_number(event_offset):
+            event_offset = float(event_offset)
         
         # get the onset and offset times
         event_onset_time = get_event_time_from_dataframe_index(event_onset, df)
-        event_offset_time = get_event_time_from_dataframe_index(event_offset, df) #
+        event_offset_time = event_onset_time + event_offset
         
         # retrieve the data in between (inclusive bounds) the onset and offset time using the index
         segment = df[(df.index >= event_onset_time) & (df.index <= event_offset_time)]
