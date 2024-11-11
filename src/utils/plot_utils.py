@@ -31,7 +31,7 @@ def plot_ecg_segment(df: pd.DataFrame, output_file: Union[Path, str], figure_tit
             - 'ECG_Raw': The raw ECG signal.
             - 'ECG_Clean': The cleaned ECG signal.
             - 'ECG_R_Peaks': R-peak annotations (1 where peaks are detected, 0 otherwise).
-        output_file (Union[Path, str]): The file path where the plot image will be saved (without file extension).
+        output_file (Union[Path, str]): The file path where the plot image will be saved.
 
     Raises:
         ValueError: If the required columns are missing from the input DataFrame.
@@ -64,8 +64,7 @@ def plot_ecg_segment(df: pd.DataFrame, output_file: Union[Path, str], figure_tit
             axes[1].scatter(row_series.name, row_series['ECG_Clean'], color='red', marker='v', zorder=3)
    
     # Save the plot
-    plt.savefig(f"{output_file}.png", dpi=135, bbox_inches='tight')
-    plt.close(fig)
-    plt.clf()
+    plt.savefig(output_file, dpi=135, bbox_inches='tight')
+    plt.close()
 
     return fig

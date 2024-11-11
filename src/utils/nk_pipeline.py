@@ -8,10 +8,11 @@ import neurokit2 as nk
 import pandas as pd
 import numpy as np
 from pathlib import Path
-import parameters as params
-import common
-import data_utils
-import plot_utils
+import sys
+import utils.common as common
+import utils.data_utils as data_utils
+import utils.parameters as params
+import utils.plot_utils as plot_utils
 # fmt: on
 
 ######################################
@@ -23,6 +24,7 @@ def process_dyad(ecg_filepath: Union[str, Path],
                  parameters: Dict,
                  data_output_dir: Union[str, Path], 
                  figure_output_dir: Optional[Union[str, Path]],
+                 create_qa_plots: bool=True,
                     ) -> None:
     """
     Main entry function for processing a dyads (mnother and child) ECG data.
@@ -40,6 +42,8 @@ def process_dyad(ecg_filepath: Union[str, Path],
             will be saved.
         qa_output_dir (Optional[Union[str, Path]]): Directory where quality assurance (QA) plots 
             will be saved if export of QA figures is enabled in the parameters.
+        create_qa_plots (bool):
+            Whether or not to create and save Quality Control plots.
 
     Returns:
         None
@@ -60,7 +64,6 @@ def process_dyad(ecg_filepath: Union[str, Path],
     assert subject_id_ecg == subject_id_event, f"Subject IDs do not match. Got {subject_id_ecg} = {subject_id_event}"
     assert condition_ecg == condition_event, f"Conditions do not match. Got {condition_ecg} = {condition_event}"
     assert wave_ecg == wave_event, f"Waves do not match. Got {wave_ecg} = {wave_event}"
-    
     
     # Load and prepare data
     signal_event_df = data_utils.load_dyad_ecg_events(ecg_filepath, event_filepath)
@@ -89,48 +92,117 @@ def process_dyad(ecg_filepath: Union[str, Path],
     mother_segments_df_list = data_utils.segment_df(mother_signal_event_df, segmentation_params)
     
     # Compute windowed HRV metrics per segment and subject
-    compute_windowed_hrv_across_segments(
+    hrv_child_df, ecg_child_df = compute_windowed_hrv_across_segments(
         segments_df_list=child_segments_df_list,
         parameters=child_params,
         figure_output_dir=qa_reports_dir,
         data_output_dir=data_output_dir,
-        subject_pair="child"
+        subject_pair="child",
+        create_qa_plots=create_qa_plots
     )
     
-    compute_windowed_hrv_across_segments(
+    hrv_mother_df, ecg_mother_df = compute_windowed_hrv_across_segments(
         segments_df_list=mother_segments_df_list,
         parameters=mother_params,
         figure_output_dir=qa_reports_dir,
         data_output_dir=data_output_dir,
-        subject_pair="mother"
+        subject_pair="mother",
+        create_qa_plots=create_qa_plots
     )
+    
+    # Add extra info and save the HRV metrics
+    hrv_child_df = hrv_child_df.assign(subject_type = "child", condition = condition_ecg, wave = wave_ecg, subject_id=subject_id_ecg)
+    hrv_child_df.to_excel(data_output_dir / f'{condition_ecg}{subject_id_ecg}_{wave_ecg}_child_hrv.xlsx', index=False)
+    
+    hrv_mother_df = hrv_mother_df.assign(subject_type = "mother", condition = condition_ecg, wave = wave_ecg,subject_id=subject_id_ecg)
+    hrv_mother_df.to_excel(data_output_dir / f'{condition_ecg}{subject_id_ecg}_{wave_ecg}_mother_hrv.xlsx', index=False)
 
+    # Add extra info and save the processed signal data
+    ecg_child_df = ecg_child_df.assign(subject_type = "child", condition = condition_ecg, wave = wave_ecg,subject_id=subject_id_ecg)
+    ecg_child_df.to_csv(data_output_dir / f'{condition_ecg}{subject_id_ecg}_{wave_ecg}_child_signal.csv', index=False)
+    
+    ecg_mother_df = ecg_mother_df.assign(subject_type = "mother", condition = condition_ecg, wave = wave_ecg,subject_id=subject_id_ecg)
+    ecg_mother_df.to_csv(data_output_dir / f'{condition_ecg}{subject_id_ecg}_{wave_ecg}_mother_signal.csv', index=False)
+    
     # Save the parameters
     common.export_to_yaml(child_params, data_output_dir/'child_params.yml')
     common.export_to_yaml(mother_params, data_output_dir/'mother_params.yml')
     
-def compute_windowed_hrv_across_segments(segments_df_list: List[pd.DataFrame], 
-                                         parameters: Dict, 
-                                         figure_output_dir: Union[str, Path],
-                                         data_output_dir: Union[str, Path],
-                                         subject_pair: str
-                                         ) -> None:
+    
+    
+    
+    
+def compute_windowed_hrv_across_segments(
+    segments_df_list: List[pd.DataFrame], 
+    parameters: Dict, 
+    figure_output_dir: Union[str, Path], 
+    data_output_dir: Union[str, Path], 
+    subject_pair: str,
+    create_qa_plots:bool=True
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Compute windowed heart rate variability (HRV) metrics for each segment and return concatenated results.
+
+    This function processes a list of data segments, computes HRV metrics for each segment using 
+    the specified parameters, and returns two DataFrames:
+    1. Concatenated HRV metrics across all segments.
+    2. Concatenated preprocessed segment data across all segments.
+
+    Args:
+        segments_df_list (List[pd.DataFrame]): 
+            A list of pandas DataFrames, each representing a data segment.
+            Each DataFrame must contain an 'event_description' column for naming purposes.
+            
+        parameters (Dict): 
+            A dictionary containing parameters for HRV calculation.
+            
+        figure_output_dir (Union[str, Path]): 
+            Path to the directory where HRV figures will be saved. 
+            A subdirectory for the specific `subject_pair` will be created.
+            
+        data_output_dir (Union[str, Path]): 
+            Path to the directory where HRV metrics and preprocessed data will be saved.
+            
+        subject_pair (str): 
+            Identifier for the subject pair being analyzed, used in output filenames.
+            
+        create_qa_plots (bool):
+            Whether or not to generate QA plots and save them.
+    
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame]: 
+            - A DataFrame containing concatenated HRV metrics across all segments.
+            - A DataFrame containing concatenated preprocessed data across all segments.
+    """
     figure_output_dir = Path(figure_output_dir)
     data_output_dir = Path(data_output_dir)
     
-    # Compute windowed HRV metrics per segment and subject
+    all_hrv_metrics = []
+    all_preprocessed_data = []
+
     for segment_df in segments_df_list:
         segment_name = segment_df["event_description"].iloc[0]
-        hrv_segment_metrics_df = calculate_windowed_HRV_metrics(segment_df, 
-                                                                parameters, 
-                                                                export_segment_plot = True,
-                                                                figure_output_dir = figure_output_dir / subject_pair, 
-                                                                segment_name=segment_name
-                                                                )
-        # save HRV metrics
-        hrv_segment_metrics_df.to_excel(data_output_dir / f'{subject_pair}_{segment_name}_metrics.xlsx', index=False)
-        # save preprocessed data
-        segment_df.to_csv(data_output_dir / f'{subject_pair}_{segment_name}_signals.csv')
+        hrv_segment_metrics_df = calculate_windowed_HRV_metrics(
+            segment_df, 
+            parameters, 
+            export_segment_plot=create_qa_plots,
+            figure_output_dir=figure_output_dir / subject_pair, 
+            segment_name=segment_name
+        )
+        
+        # Add HRV metrics and preprocessed data to lists
+        hrv_segment_metrics_df = hrv_segment_metrics_df.assign(segment_name = segment_name)
+        all_hrv_metrics.append(hrv_segment_metrics_df)
+        
+        segment_df = segment_df.assign(segment_name = segment_name)
+        all_preprocessed_data.append(segment_df)
+
+    # Concatenate all HRV metrics and preprocessed data
+    concatenated_hrv_metrics = pd.concat(all_hrv_metrics, ignore_index=True)
+    concatenated_preprocessed_data = pd.concat(all_preprocessed_data, ignore_index=True)
+
+    return concatenated_hrv_metrics, concatenated_preprocessed_data
+        
 
 
 ######################################
@@ -367,7 +439,7 @@ def calculate_windowed_HRV_metrics(
 
     """
     # Check if expected columns are present
-    expected_columns = ['ECG_Raw', 'ECG_Clean', 'ECG_Quality', 'ECG_R_Peaks']
+    expected_columns = ['ECG_Raw', 'ECG_Clean', 'ECG_R_Peaks']
     for col in expected_columns:
         if col not in signals_df.columns:
             raise ValueError(f"Column '{col}' is missing from the DataFrame.")
@@ -403,10 +475,15 @@ def calculate_windowed_HRV_metrics(
         
         # Visualize the segment if required
         if export_segment_plot:
+            segment_name = segment_name.replace("/", "_")
+            output_file = str(figure_output_dir / f"{segment_name}_{window_count}.png")
             Path(figure_output_dir).mkdir(parents=False, exist_ok=True)
             plot_utils.plot_ecg_segment(peaks_analysis_window_df, 
-                             figure_output_dir / f"{segment_name}_segment_{window_count}.png",
+                             output_file,
                              figure_title=segment_name)
+    
+    
+    
     
     # Return HRV metrics DataFrame
     return hrv_indices_df
@@ -455,7 +532,7 @@ def ecg_preprocess(raw_ecg_series: pd.Series, parameters: Dict) -> pd.DataFrame:
     
     ecg_cleaned_series = clean_ecg(raw_ecg_series, parameters)
     peak_df, rpeaks = find_peaks(ecg_cleaned_series, parameters)
-    signal_quality = calculate_signal_quality(ecg_cleaned_series, rpeaks['ECG_R_Peaks'], parameters)
+    # signal_quality = calculate_signal_quality(ecg_cleaned_series, rpeaks['ECG_R_Peaks'], parameters)
     
     # Create a composite dataframe containing the entire signal and peak information
     signals_df = pd.concat([
@@ -463,7 +540,7 @@ def ecg_preprocess(raw_ecg_series: pd.Series, parameters: Dict) -> pd.DataFrame:
             raw_ecg_series.to_frame(),
             peak_df
         ], axis=1)
-    signals_df = signals_df.assign(ECG_Quality=signal_quality)
+    # signals_df = signals_df.assign(ECG_Quality=signal_quality)
     signals_df.index = time_index
     
     return signals_df
