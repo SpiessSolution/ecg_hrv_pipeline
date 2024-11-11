@@ -100,7 +100,7 @@ def configure_ecg_params(subject_id: int, pipeline_params: Dict) -> List[Dict]:
 
 def configure_segmentation_params(subject_id: int, pipeline_params: Dict) -> Dict:
     """
-   ation parameters, you have to do this separately for mother and child paramneters.
+   
 
     Args:
         subject_id (str): The ID of the subject being processed.
@@ -113,10 +113,7 @@ def configure_segmentation_params(subject_id: int, pipeline_params: Dict) -> Dic
     
     # Customize parameters based on subject_id
     # if subject_id == 8:
-    #     parameters['segmentation']['baseline'].update({"event_onset": 0.02})
-    
-    # elif subject_id == "4":
-    #     mother_params['general'].update({"key2": "value2"})
+    #     parameters['segmentation']['baseline'].update({"duration": 250})
     
     # Add more conditions for other subject IDs as needed
 

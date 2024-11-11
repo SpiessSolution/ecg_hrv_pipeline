@@ -203,18 +203,7 @@ def prepare_event_data(df: pd.DataFrame) -> pd.DataFrame:
     
     return df
 
-def iterate_batches(df: pd.DataFrame, batch_size: int):
-    """Iterates over a DataFrame in batches of a specific size.
 
-    Args:
-        df (pd.DataFrame): The DataFrame to iterate over.
-        batch_size (int): The number of rows per batch.
-
-    Yields:
-        pd.DataFrame: A DataFrame representing the current batch.
-    """
-    for start in range(0, len(df), batch_size):
-        yield df.iloc[start:start + batch_size]
 
 
 ################################
