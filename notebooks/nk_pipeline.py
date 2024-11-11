@@ -55,10 +55,11 @@ def process_dyad(ecg_filepath: Union[str, Path],
         - Exports the configuration parameters and optionally saves QA figures if enabled.
     """
     # Some basic checks
-    subject_id_ecg, condition_ecg = data_utils.extract_subject_id_condition_from_filepath(ecg_filepath)
-    subject_id_event, condition_event = data_utils.extract_subject_id_condition_from_filepath(event_filepath)
-    assert subject_id_ecg == subject_id_event, "Subject IDs do not match"
-    assert condition_ecg == condition_event, "Conditions do not match"
+    subject_id_ecg, condition_ecg, wave_ecg = data_utils.extract_subject_id_condition_from_filepath(ecg_filepath)
+    subject_id_event, condition_event, wave_event = data_utils.extract_subject_id_condition_from_filepath(event_filepath)
+    assert subject_id_ecg == subject_id_event, f"Subject IDs do not match. Got {subject_id_ecg} = {subject_id_event}"
+    assert condition_ecg == condition_event, f"Conditions do not match. Got {condition_ecg} = {condition_event}"
+    assert wave_ecg == wave_event, f"Waves do not match. Got {wave_ecg} = {wave_event}"
     
     
     # Load and prepare data
@@ -70,9 +71,9 @@ def process_dyad(ecg_filepath: Union[str, Path],
     child_params, mother_params = params.configure_ecg_params(subject_id_ecg, segmentation_params.copy())
     
     # Create output directories -> subjects are actually dyads but both go in same folder
-    data_output_dir = data_output_dir / f"{condition_ecg}{subject_id_ecg}"
+    data_output_dir = data_output_dir / f"{condition_ecg}_{subject_id_ecg}_{wave_ecg}"
     data_output_dir.mkdir(parents=True, exist_ok=True)
-    qa_reports_dir = figure_output_dir / f"{condition_ecg}{subject_id_ecg}"
+    qa_reports_dir = figure_output_dir / f"{condition_ecg}_{subject_id_ecg}_{wave_ecg}"
     qa_reports_dir.mkdir(parents=True, exist_ok=True)
 
     # Preprocess ECG data

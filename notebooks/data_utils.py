@@ -156,12 +156,18 @@ def extract_subject_id_condition_from_filepath(file_path: Union[str, Path]) -> T
     """
     file_path = Path(file_path)
     file_name = file_path.stem
-    condition_sub_str = file_name.split('_')[0]
-    condition = condition_sub_str[0]
-    subject_id = condition_sub_str[1:]
+    condition_subject_wave_type_string = file_name.split('_')
+    assert len(condition_subject_wave_type_string) == 3, f"Error parsing file {file_name}. File should be of format B01_W1_event.txt or B01_W1_mc.txt"
+    condition = (condition_subject_wave_type_string[0][0]).upper() # first element = condition letter
+    subject_id = int(condition_subject_wave_type_string[0][1:]) # digits
+    wave = condition_subject_wave_type_string[1]
+    file_type = condition_subject_wave_type_string[-1]
+    
     assert len(condition) == 1
-    # assert (len(subject_id) >= 2) and (len(subject_id) <= 3)
-    return int(subject_id), condition
+    assert len(wave) == 2, f"Error: wave should be 2 letters/digits but is {len(wave)} in file {file_path}"
+    assert ('mc' in file_type) or ('event' in file_type)
+   
+    return subject_id, condition, wave
 
 def load_event_data(filepath: Union[str, Path]) -> pd.DataFrame:
     """
@@ -241,10 +247,10 @@ def segment_df(df: pd.DataFrame, pipeline_params: Dict) -> List[pd.DataFrame]:
         
         # get the onset and offset times
         event_onset_time = get_event_time_from_dataframe_index(event_onset, df)
-        event_offset_time = event_onset_time + event_offset
+        event_offset_time = event_onset_time + event_offset - 1/pipeline_params['general']['sampling_frequency']
         
         # retrieve the data in between (inclusive bounds) the onset and offset time using the index
-        segment = df[(df.index >= event_onset_time) & (df.index <= event_offset_time)]
+        segment = df[(df.index >= event_onset_time) & (df.index < event_offset_time)]
         if segment.empty:
             warnings.warn(f"Segment {segment_name} is empty between {event_onset_time} and {event_offset_time} ms. Please check the event indices.")
             continue
