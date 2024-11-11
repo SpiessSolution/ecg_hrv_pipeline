@@ -24,13 +24,12 @@ from pathlib import Path
 
 def plot_ecg_segment(df: pd.DataFrame, output_file: Union[Path, str], figure_title:str="") -> plt.Figure:
     """
-    Plots an ECG segment with raw, cleaned, and quality data, marking R-peaks, and saves the plot as a PNG file.
+    Plots an ECG segment showing the raw and the preprocessed ECG signal with marked R-peaks, and saves the plot as a PNG file.
 
     Args:
         df (pd.DataFrame): A DataFrame containing the ECG data. It must include the following columns:
             - 'ECG_Raw': The raw ECG signal.
             - 'ECG_Clean': The cleaned ECG signal.
-            - 'ECG_Quality': The quality of the ECG signal.
             - 'ECG_R_Peaks': R-peak annotations (1 where peaks are detected, 0 otherwise).
         output_file (Union[Path, str]): The file path where the plot image will be saved (without file extension).
 
@@ -40,14 +39,14 @@ def plot_ecg_segment(df: pd.DataFrame, output_file: Union[Path, str], figure_tit
     Returns:
         plt.Figure: The matplotlib figure object for the created plot.
     """
-    expected_columns = ['ECG_Raw', 'ECG_Clean', 'ECG_Quality', 'ECG_R_Peaks']
+    expected_columns = ['ECG_Raw', 'ECG_Clean', 'ECG_R_Peaks']
     for col in expected_columns:
         if col not in df.columns:
             raise ValueError(f"Column '{col}' is missing from the DataFrame.")
         
     sample_start_index = df.index.min()
     sample_stop_index = df.index.max()
-    fig, axes = plt.subplots(3, 1, figsize=(10, 9), constrained_layout=True)
+    fig, axes = plt.subplots(2, 1, figsize=(13, 6), constrained_layout=True)
     
     plt.suptitle(f'{figure_title}: ECG Segment from {sample_start_index} to {sample_stop_index} seconds', fontsize=16, x = 0.2)
     
@@ -55,8 +54,6 @@ def plot_ecg_segment(df: pd.DataFrame, output_file: Union[Path, str], figure_tit
     axes[0].plot(df['ECG_Raw'], color = 'k')
     axes[0].set_xlabel('Time in seconds')
     axes[0].set_ylabel('mV')
-
-
 
     axes[1].set_title(f'Cleaned ECG')
     axes[1].plot(df['ECG_Clean'], color = 'k')
@@ -66,14 +63,9 @@ def plot_ecg_segment(df: pd.DataFrame, output_file: Union[Path, str], figure_tit
         if row_series['ECG_R_Peaks'] == 1:
             axes[1].scatter(row_series.name, row_series['ECG_Clean'], color='red', marker='v', zorder=3)
    
-    # TODO: replace with something more informative (e.g., distribution of IBI's or so)
-    axes[2].set_title(f'ECG Quality')
-    axes[2].plot(df['ECG_Quality'], color = 'k')
-    axes[2].set_xlabel('Time in seconds')
-    axes[2].set_ylabel('a.u.')
-
     # Save the plot
     plt.savefig(f"{output_file}.png", dpi=135, bbox_inches='tight')
     plt.close(fig)
+    plt.clf()
 
     return fig
