@@ -24,10 +24,6 @@ base_params = {
         'method': 'neurokit',
         'correct_artifacts': True
     },
-    'signal_quality_index': {
-        'method': 'averageQRS',
-        'approach': 'simple'
-    },
     'hrv_frequency_settings': {
         'ulf': [0, 0.0033], # The spectral power of ultra low frequencies
         'vlf': [0.0033, 0.04], # The spectral power of very low frequencies
@@ -39,7 +35,7 @@ base_params = {
     },
     'segmentation': {
         'baseline': { # name of the segment (does not have to correspond to the name in the event.txt)
-            'event_onset':'baseline resting start', # put here either event description (e.g., baseline resting start)
+            'event_onset':'baseline resting start', # put here the event name from the *event.txt file (e.g., baseline resting start)
             'duration': 300, # put here the duration (in seconds)
             },
         'book_start': {

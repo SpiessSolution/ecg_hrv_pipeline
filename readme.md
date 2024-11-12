@@ -2,7 +2,7 @@
 
 ## Description
 
-This repository contains Python code to preprocess ECG data and to calculate HRV metrics from Mindware recording devices with or without event files. The code essentially combines preprocessing and analysis methods from the [Neurokit2 package](https://neuropsychology.github.io/NeuroKit/ "Link to documentation") with custom workflows used to segment and parameterize the data processing. For a complete overview of the preprocessing and analysis algorithms, the reader is strongly encouraged to throughly go through the [Neurokit2 documentation](https://neuropsychology.github.io/NeuroKit/).
+This repository contains Python code to preprocess ECG data and to calculate HRV metrics from Mindware recording devices with event files. The code essentially combines preprocessing and analysis methods from the [Neurokit2 package](https://neuropsychology.github.io/NeuroKit/ "Link to documentation") with custom workflows used to segment and parameterize the data processing. For a complete overview of the preprocessing and analysis algorithms, the reader is strongly encouraged to throughly go through the [Neurokit2 documentation](https://neuropsychology.github.io/NeuroKit/).
 
 Importantly, the code is primarly tailored towards processing and analysing the dyadic ECG recordings from the WeLoveReading (WLR) study. Nevertheless, the code is modular in nature and so can be adapted to be applicable to other study designs for as long as the Mindware recording device is used.
 
@@ -52,7 +52,6 @@ By looking at either `~src/app/analyse_we_love_rading.py` or studying `~notebook
 4. Based on the ECG signal, the event data and the parameters, the ECG signal of the mother and the child will be preprocesed. That is, data cleaning (i.e., filtering) and peak extraction.
 5. The preprocessed signal and identified peaks are then segmented based on the segmentation parameters.
 6. Next, the HRV metrics such as RMSSD are calculated for every, say 30, non-overlapping seconds of data per segment. The analysis window can be changed to any duration using the (base)parameters in `~src/utils/parameters.py`.
-7. Finally, .
 
 **Outputs:**
 
@@ -86,21 +85,22 @@ The software referenced below should be downloaded and installed. Both are entir
 - [Visual Studio Code](https://code.visualstudio.com): An advanced code editor that can be used to run code and to open Jupyter notebooks.
 - [Anaconda](https://www.anaconda.com): A package manager to install program languages with all the requirements needed to execute code from a project such as this ECG-HRV Data Processing Pipeline
 
-### Data format requirements
+### Data requirements
+
+**Timestamps in relative time; not absolute time**
+
+It is critical that the timestamps in both the ECG recordings and the Event file is in relative time, starting at 0.00 seconds.
 
 **Consistent filenames**
 
-For the We Love Reading study, it is important that the data filename match the format below **exactly** (not case-sensitive):
+For the We Love Reading study, it is important that the data filename match the format below **exactly** (except it's not case-sensitive):
 
 - `[condition][id]_W[wavenumber]_mc.txt` for the ECG recordings
 - `[condition][id]_W[wavenumber]_event.txt` for the corresponding events
 
-  ...where
-
+  where:
 - `[condition]` is a single letter
-
 - `[id]` is a number
-
 - `[wavenumber]` is a number
 - *Example*: B40_W3_mc.txt
 
@@ -145,7 +145,6 @@ It is advised to read the following brief documentation about what Anaconda is a
 
    It should show at least two environments. One called *base* and one called *neuroprofile*
 
-
 ## How to Use
 
 ### **Preparation**
@@ -166,7 +165,7 @@ Do not forget to select as Kernel / Python interpreter the virtual environment y
 
 ### Use a direct python command to execute the pipeline
 
-Instead of using a jupyter notebook to execute the code, you can also directly run the pipeline in one go by following the instructions below:
+Instead of using a jupyter notebook to execute the code, you can also directly run the code in `~src/app/analyse_we_love_reading.py` in one go by following the instructions below:
 
 1. Open the terminal / command window in visual studio code by clicking on *view* in the top menu bar and then selecting *terminal.* In the bottom of pane, a terminal opens.
 2. In the terminal, type:
@@ -176,7 +175,7 @@ Instead of using a jupyter notebook to execute the code, you can also directly r
    ```
 
    If that went well, you should see *neuroprofile* on the left side in the terminal.
-3. Use the following command to execute the code in `~src/app/analyse_we_love_reading.py
+3. Use the following command to execute the code in `~src/app/analyse_we_love_reading.py`
 
    *On Windows*
 
@@ -204,11 +203,19 @@ If you want to change the parameters, just change them at the bottom of the file
 
 ![1731419379294](image/readme/1731419379294.png)
 
-Mind the difference between Mac Os and Windows regarding the use of forward and backward slashes respectively.
+!Mind the difference between Mac OS and Windows regarding the use of forward and backward slashes respectively!
 
 ## Configuring pipeline parameters
 
-Setting the analysis window for the HRV calculations to as long as the
+Some settings of the pipeline can be configured using a configuration provided in `~src/parameters.py.`
+The default parameters for the application of the pipeline can be defined by using the base_params (see below). Unless not otherwise specified using the functions `configure_ecg_params()` and / or `configure_segmentation_params()`, the base_params are used for all dyads and individuals.
+
+![1731420628715](image/readme/1731420628715.png)
+
+As you can see, the parameters are organized into different sections:
+
+- For the sections *cleaning, peak_detection, and hrv_frequency_settings*, please refer to the [Neurokit2 documentation](https://neuropsychology.github.io/NeuroKit/functions/hrv.html) for the available options.
+- In the *segmentation* section, you can add as many segmentations that as you are interested in and are available in the *event.txt file. Note that the name of the segments (e.g., baseline, book_start, akt_start) do not matter. The event_onset, however, must correspond to the exact name of the event as defined in the *event.txt. The duration of the event has to be given in seconds.
 
 ## Customizing the pipeline
 
