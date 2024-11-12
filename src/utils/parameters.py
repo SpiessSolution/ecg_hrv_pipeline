@@ -13,12 +13,12 @@ from copy import deepcopy
 base_params = {
     'general': {
         'sampling_frequency': 500,
-        'analysis_window_seconds': 30, # 
-        'compute_hrv_frequency_metrics': False
+        'analysis_window_seconds': 30, # calculate HRV metrics in non-overlapping windows.
+        'compute_hrv_frequency_metrics': False # might not work if analysis window is short
     },
     'cleaning': {
         'method': 'neurokit',
-        'powerline': 50  # or 60 or None
+        'powerline': 50  # or 60
     },
     'peak_detection': {
         'method': 'neurokit',
@@ -64,6 +64,7 @@ base_params = {
         },
     }
 }
+
 
 ########################################################################################
 

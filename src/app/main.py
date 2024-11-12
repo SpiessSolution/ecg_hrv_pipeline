@@ -8,30 +8,54 @@ import utils.nk_pipeline as nk_pipeline
 import utils.data_utils as data_utils
 import numpy as np
 import pandas as pd
+from datetime import datetime
+import traceback
 from typing import Dict, Union, Optional, List, Tuple
 #fmt:on
 
-def process_all_dyads():
+def process_all_dyads(
+    raw_data_dir: Union[str, Path] = Path(__file__).resolve().parent.parent.parent / 'data' / 'raw',
+    processed_data_dir: Union[str, Path] = Path(__file__).resolve().parent.parent.parent / 'data' / 'processed',
+    reports_dir: Union[str, Path] = Path(__file__).resolve().parent.parent.parent / 'reports',
+    create_qa_plots: bool=True
+    ) -> None:
     # Set up Parameters
     SCRIPT_DIR = Path(__file__).resolve().parent
     ROOT_DIR = SCRIPT_DIR.parent.parent
     DATA_DIR = ROOT_DIR / 'data'
-    RAW_DATA_DIR = DATA_DIR / 'raw'
-    PROCESSED_DATA_DIR = DATA_DIR / 'processed'
+    LOGGING_DIR = ROOT_DIR / 'logs'
+    LOGGING_DIR.mkdir(parents=False, exist_ok=True)
+    RAW_DATA_DIR = Path(raw_data_dir)
+    PROCESSED_DATA_DIR = Path(processed_data_dir)
     PROCESSED_DATA_DIR.mkdir(parents=False, exist_ok=True)
-    REPORTS_DIR = ROOT_DIR / 'reports'
-    REPORTS_DIR.mkdir(parents=False, exist_ok=True) 
-    QA_REPORTS_DIR = REPORTS_DIR / 'QA'
-    QA_REPORTS_DIR.mkdir(parents=False, exist_ok=True) 
+    QA_REPORTS_DIR = Path(reports_dir) / 'QA'
+    QA_REPORTS_DIR.mkdir(parents=True, exist_ok=True) 
+    
+    # Set up logger
+    TIMESTAMP = datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")
+
+    LOGGING_FILEPATH = LOGGING_DIR / \
+        f"{TIMESTAMP}_logs.log"
+    logger = common.Logger(name='ECG_HRV_LOGGER',
+                                      log_file=LOGGING_FILEPATH).get_logger()
+    
+    # Log some parameters
+    logger.info(f"RAW_DATA_DIR: {RAW_DATA_DIR}")
+    logger.info(f"PROCESSED_DATA_DIR: {PROCESSED_DATA_DIR}")
+    logger.info(f"QA_REPORTS_DIR: {QA_REPORTS_DIR}")
+    logger.info(f"LOGGING_DIR: {LOGGING_DIR}")
+    logger.info(f"create_qa_plots: {create_qa_plots}")
     
     # Some checks
     assert RAW_DATA_DIR.is_dir(), f"Data directory in {DATA_DIR} does not exist."
 
     # Get ECG filenames
     ecg_filepaths = np.sort(list(RAW_DATA_DIR.glob('*mc.txt')))
+    logger.info(ecg_filepaths)
 
     # Get Event filenames
     event_filepaths = np.sort(list(RAW_DATA_DIR.glob('*event.txt')))
+    logger.info(event_filepaths)
 
     # check whether we have the same number of ECG and Event files
     assert len(ecg_filepaths) == len(event_filepaths)
@@ -40,7 +64,7 @@ def process_all_dyads():
     for index in range(len(ecg_filepaths)):
         try:
             dyad_number, condition, wave = data_utils.extract_subject_id_condition_from_filepath(ecg_filepaths[index])
-            print(f"Processing recording {index+1}/{len(ecg_filepaths)}. Dyad number: {dyad_number}. Condition: {condition}. Wave: {wave}")
+            logger.info(f"Processing recording {index+1}/{len(ecg_filepaths)}. Dyad number: {dyad_number}. Condition: {condition}. Wave: {wave}")
             
             process_dyad(
                 ecg_filepath = ecg_filepaths[index],
@@ -48,10 +72,11 @@ def process_all_dyads():
                 parameters=params.base_params,
                 data_output_dir=PROCESSED_DATA_DIR,
                 figure_output_dir=QA_REPORTS_DIR,
-                create_qa_plots=False
+                create_qa_plots=create_qa_plots
             );
         except Exception as e:
-            print(f"Error processing {ecg_filepaths[index]}: {e}")
+            logger.error(f"Error processing {ecg_filepaths[index]}:{e}")
+            traceback.print_exc()
 
 def process_dyad(ecg_filepath: Union[str, Path],
                  event_filepath: Union[str, Path], 
@@ -239,4 +264,4 @@ def compute_windowed_hrv_across_segments(
 
 
 if __name__ == "__main__":
-    process_all_dyads()
+    process_all_dyads(create_qa_plots = True)
