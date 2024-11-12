@@ -19,6 +19,41 @@ def process_all_dyads(
     reports_dir: Union[str, Path] = Path(__file__).resolve().parent.parent.parent / 'reports',
     create_qa_plots: bool=True
     ) -> None:
+    """
+    Processes all ECG and event data files for multiple dyads (mother-child pairs) in a specified raw data directory. 
+    For each dyad, the function preprocesses the ECG data, performs HRV analysis, and saves the results (both data and plots) 
+    to the specified directories. The function also logs the processing status and errors during execution.
+
+    Args:
+        raw_data_dir (Union[str, Path], optional): Directory containing the raw ECG and event data files. 
+            Defaults to the 'raw' folder in the 'data' directory located at the root level.
+        processed_data_dir (Union[str, Path], optional): Directory where the processed data will be saved. 
+            Defaults to the 'processed' folder in the 'data' directory located at the root level.
+        reports_dir (Union[str, Path], optional): Directory where the QA plots will be saved. 
+            Defaults to the 'reports' folder located at the root level.
+        create_qa_plots (bool, optional): Whether or not to generate and save Quality Assurance plots. 
+            Defaults to True.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the raw data directory does not exist or if the number of ECG and event files do not match.
+
+    Workflow:
+        - Initializes the required directories (logs, processed data, and QA reports).
+        - Sets up logging for tracking the progress of the processing and any errors.
+        - Iterates through the raw ECG and event files, ensuring that there are matching pairs.
+        - For each pair, preprocesses and segments the ECG data, performs HRV analysis, and saves the results.
+        - Logs information about the processing steps and any errors encountered.
+        - Optionally generates and saves QA plots for each dyad.
+    
+    Notes:
+        - Uses the base parameters defined in the 'parameters.py' file for processing the ECG data.
+        - Parameters can be specified on a dyad by dyad basis for the segmentation by modifying the 'configure_segmentation_params' function in utils/parameters.py.
+        - Parameters can be specified on a dyad by dyad basis and separately for mother and child for the ECG preprocessing by modifying the 'configure_ecg_params' function in utils/parameters.py.
+    
+    """
     # Set up Parameters
     SCRIPT_DIR = Path(__file__).resolve().parent
     ROOT_DIR = SCRIPT_DIR.parent.parent
@@ -76,7 +111,9 @@ def process_all_dyads(
             );
         except Exception as e:
             logger.error(f"Error processing {ecg_filepaths[index]}:{e}")
+            logger.debug("Traceback:\n" + traceback.format_exc())
             traceback.print_exc()
+
 
 def process_dyad(ecg_filepath: Union[str, Path],
                  event_filepath: Union[str, Path], 
