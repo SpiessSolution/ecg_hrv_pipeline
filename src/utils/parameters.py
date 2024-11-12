@@ -73,15 +73,37 @@ base_params = {
 # differ from the default parameters specfied above.
 def configure_ecg_params(subject_id: int, pipeline_params: Dict) -> List[Dict]:
     """
-    Configures child and mother parameters based on the subject ID.
-    
+    Configures and customizes pipeline parameters for ECG processing based on the subject ID.
+
+    This function allows customization of ECG processing parameters for both the child and mother 
+    in a subject dyad, based on the unique subject ID. If no customizations are needed, the function 
+    returns the default parameters. Subject-specific customizations can be applied by modifying the 
+    `pipeline_params` dictionary for each subject.
+
+    Example:
+        If the subject has a specific powerline frequency (e.g., 40 instead of the default 50), 
+        you can update the 'cleaning' section for the child:
+
+        child_params, mother_params = configure_ecg_params(subject_id=8, pipeline_params=base_params)
+        # This will return child_params with updated cleaning parameters:
+        # child_params['cleaning']['powerline'] = 40
+        
+        If another subject requires a different heart rate variability (HRV) calculation, you can modify 
+        the 'general' settings for the mother:
+
+        child_params, mother_params = configure_ecg_params(subject_id=4, pipeline_params=base_params)
+        # This will return mother_params with custom HRV settings, for example:
+        # mother_params['general']['compute_hrv_frequency_metrics'] = True
 
     Args:
-        subject_id (str): The ID of the subject being processed.
-        pipeline_params (Dict): The base dictionary containing default pipeline parameters.
+        subject_id (int): The ID of the subject being processed. This ID is used to customize the 
+                           pipeline parameters for each subject (child and mother).
+        pipeline_params (Dict): The base dictionary containing the default pipeline parameters 
+                                 (typically the `base_params` dictionary).
 
     Returns:
-        Tuple[Dict, Dict]: A tuple containing customized dictionaries for child_params and mother_params.
+        List[Dict]: A list of two dictionaries, `child_params` and `mother_params`, where both contain 
+                    the customized pipeline parameters based on the subject ID.
     """
     child_params = deepcopy(pipeline_params)
     mother_params = deepcopy(pipeline_params)
@@ -101,14 +123,35 @@ def configure_ecg_params(subject_id: int, pipeline_params: Dict) -> List[Dict]:
 
 def configure_segmentation_params(subject_id: int, pipeline_params: Dict) -> Dict:
     """
-   
+    Configures segmentation parameters based on the subject ID. Note that segmentation settings 
+    cannot be customized separately for the child and mother; the same settings are applied to both.
+
+    This function allows customization of segmentation parameters such as event onset and duration 
+    for different phases of the study. Customizations can be made based on the subject ID. If no changes 
+    are needed, the default segmentation parameters are returned.
+
+    Example:
+        To update the duration of the baseline segment for a specific subject (e.g., subject 8), 
+        you can update the segmentation parameters:
+
+        parameters = configure_segmentation_params(subject_id=8, pipeline_params=base_params)
+        # This will return the segmentation parameters with an updated duration for 'baseline':
+        # parameters['segmentation']['baseline']['duration'] = 250
+        
+        If no changes are required, the default segmentation parameters are used:
+        
+        parameters = configure_segmentation_params(subject_id=10, pipeline_params=base_params)
+        # This will return the default segmentation parameters as specified in base_params.
 
     Args:
-        subject_id (str): The ID of the subject being processed.
-        pipeline_params (Dict): The base dictionary containing default pipeline parameters.
+        subject_id (int): The ID of the subject being processed. This ID is used to customize the 
+                           segmentation parameters.
+        pipeline_params (Dict): The base dictionary containing the default pipeline parameters 
+                                 (typically the `base_params` dictionary).
 
     Returns:
-        Tuple[Dict, Dict]: A tuple containing customized dictionaries for child_params and mother_params.
+        Dict: The customized segmentation parameters based on the subject ID. 
+              If no customizations are made, the default segmentation settings are returned.
     """
     parameters = deepcopy(pipeline_params)
     

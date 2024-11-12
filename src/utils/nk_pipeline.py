@@ -289,10 +289,6 @@ def calculate_windowed_HRV_metrics(
             plot_utils.plot_ecg_segment(peaks_analysis_window_df, 
                              output_file,
                              figure_title=segment_name)
-    
-    
-    
-    
     # Return HRV metrics DataFrame
     return hrv_indices_df
 

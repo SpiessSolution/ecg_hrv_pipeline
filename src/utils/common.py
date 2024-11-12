@@ -60,10 +60,6 @@ def is_number(s):
         return True
     except ValueError:
         return False
-
-
-
-
 class Logger:
     def __init__(self, name: str, log_level: int = logging.INFO, log_file: str = None) -> None:
         """
