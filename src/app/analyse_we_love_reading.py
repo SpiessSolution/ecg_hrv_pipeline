@@ -114,7 +114,6 @@ def process_all_dyads(
             logger.debug("Traceback:\n" + traceback.format_exc())
             traceback.print_exc()
 
-
 def process_dyad(ecg_filepath: Union[str, Path],
                  event_filepath: Union[str, Path], 
                  parameters: Dict,
@@ -298,7 +297,6 @@ def compute_windowed_hrv_across_segments(
 
     return concatenated_hrv_metrics, concatenated_preprocessed_data
         
-
-
 if __name__ == "__main__":
-    process_all_dyads(create_qa_plots = True)
+    process_all_dyads(
+        )

@@ -116,11 +116,95 @@ For the We Love Reading study, it is important that the data filename match the 
 
 ![1731415367825](image/readme/1731415367825.png)
 
-## Install
+## How to Install
 
-## Use
+**Install the software**
+
+1. Install [Visual Studio Code](https://code.visualstudio.com)
+2. Install [Anaconda](https://www.anaconda.com)
+
+**Create the python environment to execute the code**
+
+It is advised to read the following brief documentation about what Anaconda is and how it is used: [https://anaconda.cloud/getting-started-with-conda-environments](https://anaconda.cloud/getting-started-with-conda-environments)
+
+1. After having installed Anaconda, use the Windows Explorer / Mac Finder and navigate to the directory where the code of the ECG-HRV Data Processing Pipeline is located.
+2. On Mac OS, right-**click on** the folder that contains all the code and select "Open terminal" from the context menu. On Windows, navigate **inside** the folder that contains all the code. Click on the the folder path at the top of the window, erase the path, and type instead "cmd". On Windows and Mac, a (black) command window / terminal should open.
+3. To create the python environment, enter in the command window / terminal the following:
+
+   ```
+   conda env create --file environment.yml
+   ```
+
+   This command will instruct Anaconda to create a python environment using the specifications in the environment.yml file.
+4. Follow the instructions in the terminal. If the command above results in error similar to "Cannot find conda" or "unknown command conda", then anaconda probably is not correctly installed. You can watch this Youtube Video that might help you getting it set up correctly: [https://www.geeksforgeeks.org/how-to-install-anaconda-on-windows/](https://www.geeksforgeeks.org/how-to-install-anaconda-on-windows/)
+5. If everything went well, the new environment should be installed and ready for use. You can verify the installation by typing in the command window / terminal:
+
+   ```
+   conda env list
+   ```
+
+   It should show at least two environments. One called *base* and one called *neuroprofile*
+
+
+## How to Use
+
+### **Preparation**
+
+* Open Visual Studio Code
+* In Visual Studio Code, open the directory where the code of the ECG-HRV Data Processing Pipeline is located.
+* Make sure that the raw ECG and Event data is stored in a single folder (see below) and not in subfolders.
+
+![1731418813717](image/readme/1731418813717.png)
+
+### **Use the interactive Jupyter notebook to execute code**
+
+Watch the following brief video that explains step-by-step how to work with Jupyter notebooks in Visual Studio Code. [https://code.visualstudio.com/docs/datascience/jupyter-notebooks](https://code.visualstudio.com/docs/datascience/jupyter-notebooks)
+
+**Important**
+
+Do not forget to select as Kernel / Python interpreter the virtual environment you have created before -called *neuroprofile*. Visual Studio code will then use this environment to execute the code in the jupyter notebook.
+
+### Use a direct python command to execute the pipeline
+
+Instead of using a jupyter notebook to execute the code, you can also directly run the pipeline in one go by following the instructions below:
+
+1. Open the terminal / command window in visual studio code by clicking on *view* in the top menu bar and then selecting *terminal.* In the bottom of pane, a terminal opens.
+2. In the terminal, type:
+
+   ```
+   conda activate neuroprofile
+   ```
+
+   If that went well, you should see *neuroprofile* on the left side in the terminal.
+3. Use the following command to execute the code in `~src/app/analyse_we_love_reading.py
+
+   *On Windows*
+
+   ```
+   python src\app\analyse_we_love_reading.py
+   ```
+
+   *On Mac OS*
+
+   `python src/app/analyse_we_love_reading.py`
 
 ### Input and output parameters
+
+If you execute the code directly, e.g., via `python src/app/analyse_we_love_reading.py`, then the default settings for the raw input data and where to store the processed data, HRV metrics, and quality-control visualizations will be used. 
+
+By default:
+
+- Input data is expected in `~data/raw`
+- Preprocessed data and HRV metrics are exported to `~data/processed`
+- Quality control visualizations are exported to `~reports/QA`. 
+
+Output folders will be created if they do not exist.
+
+If you want to change the parameters, just change them at the bottom of the file (see below):
+
+![1731419379294](image/readme/1731419379294.png)
+
+Mind the difference between Mac Os and Windows regarding the use of forward and backward slashes respectively.
 
 ## Configuring pipeline parameters
 
