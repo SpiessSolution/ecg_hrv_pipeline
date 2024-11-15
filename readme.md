@@ -19,7 +19,7 @@ The repository contains three important directories:
 - **parameters.py:** Contains the default parameters (called base_params) as well functions that can be used to change individual settings (e.g., segmentation and/or preprocessing settings) at the dyadic level (for the segmentation parameters) or the individual level (different preprocessing for mother and child).
 - **plot_utils.py:** Contains functionality related to producing quality-control visualizations.
 - **nk_pipeline.py:** Contains functionality related to the ECG preprocessing and HRV calculations. Most of the functions essentially wrap functionalities provided in the Neurokit2 package. Almost all functions take ECG data and parameters from parameters.py as input and generate either processed ECG data and/or HRV metrics.
-- **clean_impute_hrv.py**: Contains functionality related to the identification and imputation of outliers. 
+- **clean_impute_hrv.py**: Contains functionality related to the identification and imputation of HRV outliers. Can be used after running the data preprocessing and HRV calculations.
 
 ### ~/src/app directory
 
@@ -40,8 +40,7 @@ The repository contains three important directories:
   5. The coefficient of determination (CoV) is calculated per subject and segment and segments are flagged as outliers if they CoV is above a set threshold
   6. All the Excel files are concatenated into a single Excel file with the outlier flags as well as imputed values.
 
-    In addition to the HRV metrics, the merged Excel sheet contains the following columns:
-
+  In addition to the HRV metrics, the merged Excel sheet contains the following columns:
 - start_index, stop_index: The start and end time (relative to the start of the data acquisition) of the current analysis window
 - analysis_window: A number indicating whether it is the first, second, third etc. analysis window over which the HRV values are calculated
 - segment_name: The name of the segment the current analysis window corresponds to
@@ -53,7 +52,6 @@ The repository contains three important directories:
 - HRV_RMSSD_plausible_z_score_outlier: Whether or not a value in HRV_RMSSD_plausible is an outlier. Note that empty cells are treated as outlier
 - HRV_RMSSD_plausible_imputed: Depending on whether the value in HRV_RMSSD_plausible is an outlier, it either contains the original HRV_RMSSD value or the mean/median-imputed value
 - segment_outlier: Whether the entire segment should be treated as an outlier or not. As mentioned above, whether an entire segment is treated as an outlier depends on whether the CoV across the values in HRV_RMSSD_plausible_imputed is above the stated threshold.
-
 
 ## How the pipeline works
 
