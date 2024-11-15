@@ -19,6 +19,7 @@ The repository contains three important directories:
 - **parameters.py:** Contains the default parameters (called base_params) as well functions that can be used to change individual settings (e.g., segmentation and/or preprocessing settings) at the dyadic level (for the segmentation parameters) or the individual level (different preprocessing for mother and child).
 - **plot_utils.py:** Contains functionality related to producing quality-control visualizations.
 - **nk_pipeline.py:** Contains functionality related to the ECG preprocessing and HRV calculations. Most of the functions essentially wrap functionalities provided in the Neurokit2 package. Almost all functions take ECG data and parameters from parameters.py as input and generate either processed ECG data and/or HRV metrics.
+- **clean_impute_hrv.py**: Contains functionality related to the identification and imputation of outliers. 
 
 ### ~/src/app directory
 
