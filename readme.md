@@ -30,6 +30,29 @@ The repository contains three important directories:
 
   **>>>>Tip**: It is recommended to use [Microsoft Visual Studio Code ]()to work with Jupyter notebooks.
 - It is possible to experiment with the pipeline code in a jupyter notebook and to even run the entire pipeline for all dyads in it. Just make a copy of the notebook that is already there and modify to your needs. At the very top of the notebook, you see that it imports functionalities from common.py, data_utils.py, nk_pipeline.py and so forth.
+- **CleanConcatenate HRV metrics.ipynb:** This notebook contains code to perform outlier detection and imputation using the RMSSD HRV values that have been exported by the pipeline (e.g., after running the other notebook). The notebook goes through all Excel files with HRV metrics that were created by the pipeline. Specifically, it:
+
+  1. Loads all the Excel files that contain HRV metrics that were created by the pipeline
+  2. Flags all values above or below a fixed upper and lower limit as outliers (you can set the threshold(s) in the notebook)
+  3. Goes through each segment of each subject in each dyad and uses a z-score threshold to identify individual HRV values that are outliers and flags them. Note, a segment is, for example, baseline resting, AKT, Stroop mother etc.
+  4. HRV outliers are replaced by the mean or median
+  5. The coefficient of determination (CoV) is calculated per subject and segment and segments are flagged as outliers if they CoV is above a set threshold
+  6. All the Excel files are concatenated into a single Excel file with the outlier flags as well as imputed values.
+
+    In addition to the HRV metrics, the merged Excel sheet contains the following columns:
+
+- start_index, stop_index: The start and end time (relative to the start of the data acquisition) of the current analysis window
+- analysis_window: A number indicating whether it is the first, second, third etc. analysis window over which the HRV values are calculated
+- segment_name: The name of the segment the current analysis window corresponds to
+- subject_type: Whether it is the mother or the child's data of the current subject_id
+- condition: the condition label (i.e.,, C, W, B)
+- wave: the wave that the measurement belongs to (i.e., W1, W2, W3)
+- subject_id: ID of the subject/dyad
+- HRV_RMSSD_plausible: the values of HRV_RMSSD that are within the limits specified in step 2 mentioned above. Empty cells in the Excel sheet correspond to original HRV_RMSSD that values outside the bounds
+- HRV_RMSSD_plausible_z_score_outlier: Whether or not a value in HRV_RMSSD_plausible is an outlier. Note that empty cells are treated as outlier
+- HRV_RMSSD_plausible_imputed: Depending on whether the value in HRV_RMSSD_plausible is an outlier, it either contains the original HRV_RMSSD value or the mean/median-imputed value
+- segment_outlier: Whether the entire segment should be treated as an outlier or not. As mentioned above, whether an entire segment is treated as an outlier depends on whether the CoV across the values in HRV_RMSSD_plausible_imputed is above the stated threshold.
+
 
 ## How the pipeline works
 
@@ -58,6 +81,10 @@ By looking at either `~src/app/analyse_we_love_rading.py` or studying `~notebook
 - `~data/processed/`: The location where the HRV metrics will be exported separetely for the mother and the child as Excel files. The segmented raw and cleaned, and identified peaks are exported as csv files. Finally, the parameters are exported separately for the mother and the child to allow for improved reproducibility.
 - `~reports/`: Per segment, a quality control visualization will be saved that shows the raw data as well as the cleaned data with the identified peaks. Finally, the parameters are exported separately for the mother and the child.
 
+**Note**
+
+Identifying and dealing with outliers as well as merging all the HRV values across subjects is not part of the normal pipeline. This is to be done using the notebook in `~notebooks/CleanConcatenate HRV metrics.ipynb`
+
 ### Customizing
 
 While the overall workflow (data loading, parameter specification, preprocessing, segmentation, analysis, and export) will be the same, Some adjustments might be needed to make the pipeline run for different experiment settings. More information on that will be provided in the section Customizing the pipeline further down below in this document.
@@ -69,11 +96,12 @@ While automatic data preprocessing and HRV analysis has its benefits in terms of
 It is advised to use the pipeline in the following way:
 
 1. Apply the pipeline to all recordings. Make sure to enable the export of quality-control visualizations.
-2. Per participant / dyad, do the following:
-   1. Go to `~reports/QA/` identify the participant / dyad and have a look at the visualizations to get an overall impression of the data quality and peak-detection performance.
-   2. Go to `~data/processed` identify the participant / dyad and have a look at the HRV metric (e.g., RMSSD) and check for outliers across the analysis windows and / or segments. You can use the column analysis window / segment name in combination with the QA visualization to decide:
-      1. If you want to flag the HRV value(s) as outliers and disregard them from further analyses
-      2. If you want to use Mindware to manually clean the data and to have Mindware calculate the RMSSD value for that segment. In this case, make sure to use the same analysis window in Mindware. The RMSSD calculation should be the same.
+2. Run the notebook in `~notebooks/CleanConcatenate HRV metrics.ipynb`. This notebook loads all the excel files with the HRV metrics that the pipeline has exported and does some outlier identification. The notebook allows you to specify how strict you want to be in considering an HRV value as outlier. The notebook creates a new folder in `~data/hrv` that contains a file called `cleaned_hrv_data.xlsx`.
+3. Use the Excel sheet to identify outliers. You can use the columns *segment_outliers* and  *HRV_RMSSD_plausible_z_score_outlier* for that purpose.
+4. Per outlier:
+   1. Go to `~reports/QA/` identify the participant / dyad and have a look at the visualizations to get an impression of the data quality and peak-detection performance. This allows you to make a decision whether:
+   2. 1. You disregard the HRV outlier from further analyses
+      2. If you want to use Mindware to manually clean the data and to have Mindware calculate the RMSSD value for that segment. In this case, make sure to use the same analysis window in Mindware. The RMSSD calculation should be the same. TIP: use the columns start_index and stop_index from the Excel sheet to verify that the timing of the segment in the pipeline corresponds to the timing of the segment in Mindware.
       3. If you want to try different parameter settings for the mother and / or child using the functions provided in `src/utils/parameters.py`. Information about which parameter settings are available can be seen on the [Neurokit2 documentation](https://neuropsychology.github.io/NeuroKit/functions/ecg.html).
 
 ## Requirements
@@ -189,13 +217,13 @@ Instead of using a jupyter notebook to execute the code, you can also directly r
 
 ### Input and output parameters
 
-If you execute the code directly, e.g., via `python src/app/analyse_we_love_reading.py`, then the default settings for the raw input data and where to store the processed data, HRV metrics, and quality-control visualizations will be used. 
+If you execute the code directly, e.g., via `python src/app/analyse_we_love_reading.py`, then the default settings for the raw input data and where to store the processed data, HRV metrics, and quality-control visualizations will be used.
 
 By default:
 
 - Input data is expected in `~data/raw`
 - Preprocessed data and HRV metrics are exported to `~data/processed`
-- Quality control visualizations are exported to `~reports/QA`. 
+- Quality control visualizations are exported to `~reports/QA`.
 
 Output folders will be created if they do not exist.
 
@@ -228,10 +256,11 @@ When customizations are needed, those should be done at the lowest level. High-l
 
 ## Limitations
 
-Event offset = duration instead of dedicated stop event
+- Currently, HRV calculations are only supported using non-overlapping analysis windows. However, the code in the function nk_pipeline.calculate_windowed_HRV_metrics() can be modified to allow for a continous estimatation of HRV.
+- Regarding the segmentation, the parameters in parameters.py only allow for the specification of the event onset and a duration. Using a specified event in the *event.txt to define the event offset is currently not supported. However, that can be implemented with just a few lines of code in the function data_utils.segment_df() and the functions that are called inside.
 
 ## Notes
 
-Parameters.segmentation.duration: mention that the duration needs to make sense (i.e., there will not be a check whether the duration of event_onset_e1 includes the onset of event_e2, for example).
+Parameters.segmentation.duration: The duration needs to make sense (i.e., there will not be a check whether the duration of event_onset_e1 includes / overlaps with the onset of event_e2, for example).
 
 ECG data and event date need to have timestamp in relative time (i.e., milliseconds starting at 0)
